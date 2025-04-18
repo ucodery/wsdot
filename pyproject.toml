@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "wsdot"
+version = "0.0.0"
+authors = [{name = "Jeremiah Paige", email = "ucodery@gmail.com"}]
+description = "A Python wrapper of the wsdot.wa.gov APIs"
+dependencies = [
+    "aiohttp",
+    "pydantic",
+]
+
+[tool.hatch.envs.check]
+dependencies = [
+    "ruff",
+    "mypy",
+]
+[tool.hatch.envs.check.scripts]
+run = "ruff check"
+fmt = "ruff format"
+type = "mypy ."
+
+[tool.ruff.format]
+quote-style = "single"
