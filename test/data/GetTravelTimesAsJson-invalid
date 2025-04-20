@@ -1,0 +1,25 @@
+[{
+	"AverageTime":2147483647,
+	"CurrentTime":2147483647,
+	"Description":"String content",
+	"Distance":12678967.543233,
+	"EndPoint":{
+		"Description":"String content",
+		"Direction":"String content",
+		"Latitude":12678967.543233,
+		"Longitude":12678967.543233,
+		"MilePost":12678967.543233,
+		"RoadName":"String content"
+	},
+	"Name":"String content",
+	"StartPoint":{
+		"Description":"String content",
+		"Direction":"String content",
+		"Latitude":12678967.543233,
+		"Longitude":12678967.543233,
+		"MilePost":12678967.543233,
+		"RoadName":"String content"
+	},
+	"TimeUpdated":"\/Date(1745003700000-0700)\/",
+	"TravelTimeID":null
+}]

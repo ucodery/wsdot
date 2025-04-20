@@ -131,7 +131,7 @@ class WsdotTravelTimes(WsdotTravel):
             for travel_time in await self.get_json(subpath='GetTravelTimesAsJson')
         ]
 
-    async def get_travel_time(self, travel_time_id) -> TravelTime:
+    async def get_travel_time(self, travel_time_id: int) -> TravelTime:
         return TravelTime(
             **await self.get_json(
                 subpath='GetTravelTimeAsJson', params={'TravelTimeID': travel_time_id}
