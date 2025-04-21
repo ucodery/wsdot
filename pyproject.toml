@@ -5,12 +5,17 @@ build-backend = "hatchling.build"
 [project]
 name = "wsdot"
 version = "0.0.0"
+readme = "README.md"
+license = "BSD-3-Clause"
 authors = [{name = "Jeremiah Paige", email = "ucodery@gmail.com"}]
 description = "A Python wrapper of the wsdot.wa.gov APIs"
 dependencies = [
     "aiohttp",
     "pydantic",
 ]
+
+[project.urls]
+Home = "https://github.com/ucodery/wsdot"
 
 [tool.hatch.envs.check]
 dependencies = [
