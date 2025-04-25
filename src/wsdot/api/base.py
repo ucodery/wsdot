@@ -1,3 +1,4 @@
+import abc
 import asyncio
 import atexit
 from typing import Any
@@ -30,32 +31,35 @@ def get_long_lived_session() -> aiohttp.ClientSession:
     return __session
 
 
-class Wsdot:
+class Wsdot(abc.ABC):
     def __init__(
         self, api_key: str, *, session: aiohttp.ClientSession | None = None
     ) -> None:
         self.api_key = api_key
-        self.url = 'http://www.wsdot.wa.gov/traffic/api/'
-        self.data_path = ''
         self.session = session if session is not None else get_long_lived_session()
+
+    @property
+    @abc.abstractmethod
+    def api_url(self) -> str: ...
+
+    @abc.abstractmethod
+    def auth_header(self) -> dict[str, str]: ...
 
     async def get_json(
         self, subpath: str = '', params: dict[Any, Any] | None = None
     ) -> dict[Any, Any]:
-        auth_params = {'AccessCode': self.api_key}
-        if params:
-            auth_params |= params
+        full_params = self.auth_header() | (params if params else {})
 
-        travel_url = self.url + self.data_path + subpath
-        async with self.session.get(travel_url, params=auth_params) as response:
+        get_url = self.api_url + subpath
+        async with self.session.get(get_url, params=full_params) as response:
             if response.status != 200:
                 raise WsdotError(
-                    'unexpected status', url=travel_url, status=response.status
+                    'unexpected status', url=get_url, status=response.status
                 )
             if not response.content_type == 'application/json':
                 raise WsdotError(
-                    'unexpected data type', url=travel_url, status=response.status
+                    'unexpected data type', url=get_url, status=response.status
                 )
             if not await response.text():
-                raise WsdotError('received no data', url=travel_url)
+                raise WsdotError('received no data', url=get_url)
             return await response.json()

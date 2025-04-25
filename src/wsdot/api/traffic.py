@@ -1,10 +1,9 @@
-from datetime import datetime, timedelta, timezone
-import re
-from typing import Annotated, Any
+from datetime import datetime
+from typing import Annotated
 
-import aiohttp
 from pydantic import BaseModel, PlainValidator
 
+from ._json_date import _parse_datetime
 from .base import Wsdot
 
 
@@ -17,24 +16,6 @@ class TravelLocation(BaseModel):
     RoadName: str | None
 
 
-def _updated_datetime(time_updated: Any) -> datetime:
-    if not isinstance(time_updated, str):
-        raise ValueError('string required')
-    timestamp_parts = re.match(
-        r'/Date\((?P<mseconds>\d{13})(?P<zhr>[+-]\d{2})(?P<zmin>\d{2})\)/', time_updated
-    )
-    if timestamp_parts is None:
-        raise ValueError('unsupported datetime format (expected "/Date(%s%f%z)/")')
-    ts = int(timestamp_parts.group('mseconds')) / 1000
-    tz = timezone(
-        timedelta(
-            hours=int(timestamp_parts.group('zhr')),
-            minutes=int(timestamp_parts.group('zmin')),
-        )
-    )
-    return datetime.fromtimestamp(ts, tz=tz)
-
-
 class TravelTime(BaseModel):
     AverageTime: int
     CurrentTime: int
@@ -43,16 +24,15 @@ class TravelTime(BaseModel):
     EndPoint: TravelLocation | None
     Name: str | None
     StartPoint: TravelLocation | None
-    TimeUpdated: Annotated[datetime, PlainValidator(_updated_datetime)]
+    TimeUpdated: Annotated[datetime, PlainValidator(_parse_datetime)]
     TravelTimeID: int
 
 
 class WsdotTravelTimes(Wsdot):
-    def __init__(
-        self, api_key: str, *, session: aiohttp.ClientSession | None = None
-    ) -> None:
-        super().__init__(api_key=api_key, session=session)
-        self.data_path = 'TravelTimes/TravelTimesREST.svc/'
+    api_url = 'http://www.wsdot.wa.gov/traffic/api/TravelTimes/TravelTimesREST.svc/'
+
+    def auth_header(self) -> dict[str, str]:
+        return {'AccessCode': self.api_key}
 
     async def get_all_travel_times(self) -> list[TravelTime]:
         return [
