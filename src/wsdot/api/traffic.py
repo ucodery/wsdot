@@ -1,9 +1,6 @@
-from datetime import datetime
-from typing import Annotated
+from pydantic import BaseModel
 
-from pydantic import BaseModel, PlainValidator
-
-from ._json_date import _parse_datetime
+from ._json_date import RestDate
 from .base import Wsdot
 
 
@@ -24,7 +21,7 @@ class TravelTime(BaseModel):
     EndPoint: TravelLocation | None
     Name: str | None
     StartPoint: TravelLocation | None
-    TimeUpdated: Annotated[datetime, PlainValidator(_parse_datetime)]
+    TimeUpdated: RestDate
     TravelTimeID: int
 
 

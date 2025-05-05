@@ -1,18 +1,14 @@
-from datetime import datetime
 from enum import Enum
-from typing import Annotated
 
-from pydantic import BaseModel, PlainValidator
+from pydantic import BaseModel
 
-from ._json_date import _parse_datetime
+from ._json_date import RestDate
 from .base import Wsdot
 
 
-class Season(Enum):
-    SPRING = 0
-    SUMMER = 1
-    FALL = 2
-    WINTER = 3
+class Adjustement(Enum):
+    ADDITION = 0
+    CANDELLATION = 1
 
 
 class Cardinal(Enum):
@@ -25,19 +21,26 @@ class Journey(Enum):
     ARRIVAL = 1
 
 
+class Season(Enum):
+    SPRING = 0
+    SUMMER = 1
+    FALL = 2
+    WINTER = 3
+
+
 class FerrySeason(BaseModel):
     ScheduleID: int
     ScheduleName: str | None
     ScheduleSeason: Season
     SchedulePDFUrl: str | None
-    ScheduleStart: Annotated[datetime, PlainValidator(_parse_datetime)]
-    ScheduleEnd: Annotated[datetime, PlainValidator(_parse_datetime)]
+    ScheduleStart: RestDate
+    ScheduleEnd: RestDate
 
 
 class FerrySimpleAlert(BaseModel):
     BulletinID: int
     BulletinFlag: bool
-    PublishDate: Annotated[datetime, PlainValidator(_parse_datetime)]
+    PublishDate: RestDate
     DisruptionDescription: str | None
 
 
@@ -57,14 +60,9 @@ class FerryAlert(FerrySimpleAlert):
     IVRText: str | None
 
 
-class Adjustement(Enum):
-    ADDITION = 0
-    CANDELLATION = 1
-
-
 class FerryRouteAdjustment(BaseModel):
-    DateFrom: Annotated[datetime, PlainValidator(_parse_datetime)]
-    DateThru: Annotated[datetime, PlainValidator(_parse_datetime)]
+    DateFrom: RestDate
+    DateThru: RestDate
     EventID: int | None
     EventDescription: str | None
     AdjType: Adjustement
@@ -85,8 +83,8 @@ class FerryRoute(BaseModel):
 
 
 class FerryDateRange(BaseModel):
-    DateFrom: Annotated[datetime, PlainValidator(_parse_datetime)]
-    DateThru: Annotated[datetime, PlainValidator(_parse_datetime)]
+    DateFrom: RestDate
+    DateThru: RestDate
     EventID: int | None
     EventDescription: str | None
 
@@ -120,9 +118,9 @@ class FerryScheduleAdjustment(BaseModel):
     TerminalID: int
     TerminalDescription: str
     TerminalBriefDescription: str
-    TimeToAdj: Annotated[datetime, PlainValidator(_parse_datetime)]
-    AdjDateFrom: Annotated[datetime, PlainValidator(_parse_datetime)]
-    AdjDateThru: Annotated[datetime, PlainValidator(_parse_datetime)]
+    TimeToAdj: RestDate
+    AdjDateFrom: RestDate
+    AdjDateThru: RestDate
     TidalAdj: bool
     EventID: int | None
     EventDescription: str | None

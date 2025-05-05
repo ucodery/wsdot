@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta, timezone
 import re
-from typing import Any
+from typing import Annotated, Any
+
+from pydantic import PlainValidator
 
 
 def _parse_datetime(time_updated: Any) -> datetime:
@@ -21,3 +23,6 @@ def _parse_datetime(time_updated: Any) -> datetime:
         )
     )
     return datetime.fromtimestamp(ts, tz=tz)
+
+
+RestDate = Annotated[datetime, PlainValidator(_parse_datetime)]
