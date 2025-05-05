@@ -32,11 +32,11 @@
 	"AdjType":0,
 	"Annotations":[{
 		"AnnotationID":2147483647,
-		"AnnotationText":"String content",
-		"AnnotationIVRText":"String content",
+		"AnnotationText":null,
+		"AnnotationIVRText":null,
 		"AdjustedCrossingTime":null,
-		"AnnotationImg":"String content",
-		"TypeDescription":"String content",
+		"AnnotationImg":null,
+		"TypeDescription":null,
 		"SortSeq":2147483647
 	}]
 }]

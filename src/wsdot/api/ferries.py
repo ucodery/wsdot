@@ -91,11 +91,11 @@ class FerryDateRange(BaseModel):
 
 class FerryAnnotation(BaseModel):
     AnnotationID: int
-    AnnotationText: str
-    AnnotationIVRText: str
+    AnnotationText: str | None
+    AnnotationIVRText: str | None
     AdjustedCrossingTime: int | None
-    AnnotationImg: str
-    TypeDescription: str
+    AnnotationImg: str | None
+    TypeDescription: str | None
     SortSeq: int
 
 
@@ -103,21 +103,21 @@ class FerryScheduleAdjustment(BaseModel):
     ScheduleID: int
     SchedRouteID: int
     RouteID: int
-    RouteDescription: str
+    RouteDescription: str | None
     RouteSortSeq: int
     SailingID: int
-    SailingDescription: str
-    ActiveSailingDateRange: FerryDateRange
+    SailingDescription: str | None
+    ActiveSailingDateRange: FerryDateRange | None
     SailingDir: Cardinal
     JourneyID: int
     VesselID: int
-    VesselName: str
+    VesselName: str | None
     VesselHandicapAccessible: bool
     VesselPositionNum: int
     JourneyTerminalID: int
     TerminalID: int
-    TerminalDescription: str
-    TerminalBriefDescription: str
+    TerminalDescription: str | None
+    TerminalBriefDescription: str | None
     TimeToAdj: RestDate
     AdjDateFrom: RestDate
     AdjDateThru: RestDate
@@ -126,7 +126,7 @@ class FerryScheduleAdjustment(BaseModel):
     EventDescription: str | None
     DepArrIndicator: Journey
     AdjType: Adjustement
-    Annotations: list[FerryAnnotation]
+    Annotations: list[FerryAnnotation] | None
 
 
 class WsdotFerrySchedule(Wsdot):
