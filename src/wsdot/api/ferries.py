@@ -15,6 +15,16 @@ class Season(Enum):
     WINTER = 3
 
 
+class Cardinal(Enum):
+    WEST = 0
+    EAST = 1
+
+
+class Journey(Enum):
+    DEPARTURE = 0
+    ARRIVAL = 1
+
+
 class FerrySeason(BaseModel):
     ScheduleID: int
     ScheduleName: str | None
@@ -74,6 +84,53 @@ class FerryRoute(BaseModel):
     ContingencyAdj: list[FerryRouteAdjustment] | None
 
 
+class FerryDateRange(BaseModel):
+    DateFrom: Annotated[datetime, PlainValidator(_parse_datetime)]
+    DateThru: Annotated[datetime, PlainValidator(_parse_datetime)]
+    EventID: int | None
+    EventDescription: str | None
+
+
+class FerryAnnotation(BaseModel):
+    AnnotationID: int
+    AnnotationText: str
+    AnnotationIVRText: str
+    AdjustedCrossingTime: int | None
+    AnnotationImg: str
+    TypeDescription: str
+    SortSeq: int
+
+
+class FerryScheduleAdjustment(BaseModel):
+    ScheduleID: int
+    SchedRouteID: int
+    RouteID: int
+    RouteDescription: str
+    RouteSortSeq: int
+    SailingID: int
+    SailingDescription: str
+    ActiveSailingDateRange: FerryDateRange
+    SailingDir: Cardinal
+    JourneyID: int
+    VesselID: int
+    VesselName: str
+    VesselHandicapAccessible: bool
+    VesselPositionNum: int
+    JourneyTerminalID: int
+    TerminalID: int
+    TerminalDescription: str
+    TerminalBriefDescription: str
+    TimeToAdj: Annotated[datetime, PlainValidator(_parse_datetime)]
+    AdjDateFrom: Annotated[datetime, PlainValidator(_parse_datetime)]
+    AdjDateThru: Annotated[datetime, PlainValidator(_parse_datetime)]
+    TidalAdj: bool
+    EventID: int | None
+    EventDescription: str | None
+    DepArrIndicator: Journey
+    AdjType: Adjustement
+    Annotations: list[FerryAnnotation]
+
+
 class WsdotFerrySchedule(Wsdot):
     api_url = 'http://wsdot.wa.gov/Ferries/API/Schedule/rest/'
 
@@ -96,6 +153,12 @@ class WsdotFerrySchedule(Wsdot):
         return [
             FerryAlert(**ferry_alert)
             for ferry_alert in await self.get_json(subpath='alerts')
+        ]
+
+    async def all_adjustments(self) -> list[FerryScheduleAdjustment]:
+        return [
+            FerryScheduleAdjustment(**ferry_adjustment)
+            for ferry_adjustment in await self.get_json(subpath='timeadj')
         ]
 
     async def all_routes(self) -> list[FerryRoute]:

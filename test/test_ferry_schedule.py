@@ -3,46 +3,54 @@ import itertools
 from pydantic import ValidationError
 import pytest
 
-from wsdot.api.ferries import FerryAlert, FerryRoute, FerrySeason, WsdotFerrySchedule
+from wsdot.api.ferries import (
+    FerryAlert,
+    FerryRoute,
+    FerryScheduleAdjustment,
+    FerrySeason,
+    WsdotFerrySchedule,
+)
 from wsdot.error import WsdotError
-
-
-def endpoint_expansion(endpoint: str, datatype: type, local_data: list[str]):
-    return itertools.product(
-        [endpoint],
-        [datatype],
-        local_data,
-    )
 
 
 @pytest.mark.parametrize(
     ['endpoint', 'datatype', 'local_data'],
     [
-        *endpoint_expansion(
-            'alerts',
-            FerryAlert,
+        *itertools.product(
+            ['alerts'],
+            [FerryAlert],
             [
                 'GetAllAlerts-valid',
                 'GetAllAlerts-valid-nulls',
                 'empty-list',
             ],
         ),
-        *endpoint_expansion(
-            'season',
-            FerrySeason,
+        *itertools.product(
+            ['season'],
+            [FerrySeason],
             [
                 'GetActiveScheduledSeasons-valid',
                 'GetActiveScheduledSeasons-valid-nulls',
                 'empty-list',
             ],
         ),
-        *endpoint_expansion(
-            'all_routes',
-            FerryRoute,
+        *itertools.product(
+            ['all_routes'],
+            [FerryRoute],
             [
                 'GetAllSchedRoutes-valid',
                 'GetAllSchedRoutes-valid-nulls',
                 'GetAllSchedRoutes-valid-sub-nulls',
+                'empty-list',
+            ],
+        ),
+        *itertools.product(
+            ['all_adjustments'],
+            [FerryScheduleAdjustment],
+            [
+                'GetAllTimeAdj-valid',
+                'GetAllTimeAdj-valid-nulls',
+                'GetAllTimeAdj-valid-sub-nulls',
                 'empty-list',
             ],
         ),
@@ -64,6 +72,7 @@ async def test_ferrry_list_data_good(local_session, datatype, endpoint):
         ['alerts', 'GetAllAlerts-invalid'],
         ['season', 'GetActiveScheduledSeasons-invalid'],
         ['all_routes', 'GetAllSchedRoutes-invalid'],
+        ['all_adjustments', 'GetAllTimeAdj-invalid'],
     ],
 )
 @pytest.mark.asyncio
@@ -79,7 +88,7 @@ async def test_ferry_data_bad(local_session, endpoint):
     ['endpoint', 'local_data'],
     [
         *itertools.product(
-            ['alerts', 'season', 'all_routes'],
+            ['alerts', 'season', 'all_routes', 'all_adjustments'],
             ['empty'],
         ),
     ],

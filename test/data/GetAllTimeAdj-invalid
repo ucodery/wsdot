@@ -1,0 +1,42 @@
+[{
+	"ScheduleID":null,
+	"SchedRouteID":2147483647,
+	"RouteID":2147483647,
+	"RouteDescription":0,
+	"RouteSortSeq":2147483647,
+	"SailingID":2147483647,
+	"SailingDescription":"String content",
+	"ActiveSailingDateRange":{
+		"DateFrom":"\/Date(1928174800000-0700)\/",
+		"DateThru":"\/Date(1928174800000-0700)\/",
+		"EventID":2147483647,
+		"EventDescription":"String content"
+	},
+	"SailingDir":0,
+	"JourneyID":2147483647,
+	"VesselID":2147483647,
+	"VesselName":"String content",
+	"VesselHandicapAccessible":true,
+	"VesselPositionNum":2147483647,
+	"JourneyTerminalID":2147483647,
+	"TerminalID":2147483647,
+	"TerminalDescription":"String content",
+	"TerminalBriefDescription":"String content",
+	"TimeToAdj":"\/Date(1928174800000-0700)\/",
+	"AdjDateFrom":"\/Date(1928174800000-0700)\/",
+	"AdjDateThru":"\/Date(1928174800000-0700)\/",
+	"TidalAdj":true,
+	"EventID":2147483647,
+	"EventDescription":"String content",
+	"DepArrIndicator":0,
+	"AdjType":0,
+	"Annotations":[{
+		"AnnotationID":2147483647,
+		"AnnotationText":"String content",
+		"AnnotationIVRText":"String content",
+		"AdjustedCrossingTime":2147483647,
+		"AnnotationImg":"String content",
+		"TypeDescription":"String content",
+		"SortSeq":2147483647
+	}]
+}]
