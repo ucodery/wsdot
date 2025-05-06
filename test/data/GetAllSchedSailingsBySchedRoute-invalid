@@ -1,0 +1,46 @@
+[{
+	"ScheduleID":"abcdef",
+	"SchedRouteID":null,
+	"RouteID":2147483647,
+	"SailingID":2147483647,
+	"SailingDescription":"String content",
+	"SailingNotes":"String content",
+	"DisplayColNum":2147483647,
+	"SailingDir":0,
+	"DayOpDescription":"String content",
+	"DayOpUseForHoliday":true,
+	"ActiveDateRanges":[{
+		"DateFrom":"\/Date(928174800000-0700)\/",
+		"DateThru":"\/Date(928174800000-0700)\/",
+		"EventID":2147483647,
+		"EventDescription":"String content"
+	}],
+	"Journs":[{
+		"JourneyID":2147483647,
+		"ReservationInd":true,
+		"InternationalInd":true,
+		"InterislandInd":true,
+		"VesselID":2147483647,
+		"VesselName":"String content",
+		"VesselHandicapAccessible":true,
+		"VesselPositionNum":2147483647,
+		"TerminalTimes":[{
+			"JourneyTerminalID":2147483647,
+			"TerminalID":2147483647,
+			"TerminalDescription":"String content",
+			"TerminalBriefDescription":"String content",
+			"Time":"\/Date(928174800000-0700)\/",
+			"DepArrIndicator":0,
+			"IsNA":true,
+			"Annotations":[{
+				"AnnotationID":2147483647,
+				"AnnotationText":"String content",
+				"AnnotationIVRText":"String content",
+				"AdjustedCrossingTime":2147483647,
+				"AnnotationImg":"String content",
+				"TypeDescription":"String content",
+				"SortSeq":2147483647
+			}]
+		}]
+	}]
+}]

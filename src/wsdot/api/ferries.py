@@ -129,6 +129,44 @@ class FerryScheduleAdjustment(BaseModel):
     Annotations: list[FerryAnnotation] | None
 
 
+class FerryScheduleTimes(BaseModel):
+    JourneyTerminalID: int
+    TerminalID: int
+    TerminalDescription: str | None
+    TerminalBriefDescription: str | None
+    Time: RestDate
+    DepArrIndicator: Journey
+    IsNA: bool
+    Annotations: list[FerryAnnotation] | None
+
+
+class FerryJourney(BaseModel):
+    JourneyID: int
+    ReservationInd: bool
+    InternationalInd: bool
+    InterislandInd: bool
+    VesselID: int
+    VesselName: str | None
+    VesselHandicapAccessible: bool
+    VesselPositionNum: int
+    TerminalTimes: list[FerryScheduleTimes] | None
+
+
+class FerrySailing(BaseModel):
+    ScheduleID: int
+    SchedRouteID: int
+    RouteID: int
+    SailingID: int
+    SailingDescription: str | None
+    SailingNotes: str | None
+    DisplayColNum: int
+    SailingDir: Cardinal
+    DayOpDescription: str | None
+    DayOpUseForHoliday: bool
+    ActiveDateRanges: list[FerryDateRange] | None
+    Journs: list[FerryJourney] | None
+
+
 class WsdotFerrySchedule(Wsdot):
     api_url = 'http://wsdot.wa.gov/Ferries/API/Schedule/rest/'
 
@@ -163,4 +201,10 @@ class WsdotFerrySchedule(Wsdot):
         return [
             FerryRoute(**ferry_route)
             for ferry_route in await self.get_json(subpath='schedroutes')
+        ]
+
+    async def all_sailings(self, schedule_route_id: int) -> list[FerrySailing]:
+        return [
+            FerrySailing(**ferry_sailing)
+            for ferry_sailing in await self.get_json(subpath='allsailings')
         ]
