@@ -70,15 +70,18 @@ class FerryRouteAdjustment(BaseModel):
 
 
 class FerryRoute(BaseModel):
-    ScheduleID: int
-    SchedRouteID: int
-    ContingencyOnly: bool
     RouteID: int
     RouteAbbrev: str | None
     Description: str | None
-    SeasonalRouteNotes: str | None
     RegionID: int
     ServiceDisruptions: list[FerrySimpleAlert] | None
+
+
+class FerrySchedule(FerryRoute):
+    ScheduleID: int
+    SchedRouteID: int
+    ContingencyOnly: bool
+    SeasonalRouteNotes: str | None
     ContingencyAdj: list[FerryRouteAdjustment] | None
 
 
@@ -191,20 +194,60 @@ class WsdotFerrySchedule(Wsdot):
             for ferry_alert in await self.get_json(subpath='alerts')
         ]
 
-    async def all_adjustments(self) -> list[FerryScheduleAdjustment]:
+    async def all_adjustments(
+        self, *, route_id: int | None = None, schedule_id: int | None = None
+    ) -> list[FerryScheduleAdjustment]:
+        if route_id is not None and schedule_id is not None:
+            raise ValueError(
+                'all_adjustments must be called with one of route_id or schedule_id or neither'
+            )
+        if route_id is not None:
+            subpath = f'timeadjbyroute/{route_id}'
+        if schedule_id is not None:
+            subpath = f'timeadjbyschedroute/{schedule_id}'
+        else:
+            subpath = 'timeadj'
         return [
             FerryScheduleAdjustment(**ferry_adjustment)
-            for ferry_adjustment in await self.get_json(subpath='timeadj')
+            for ferry_adjustment in await self.get_json(subpath=subpath)
         ]
 
-    async def all_routes(self) -> list[FerryRoute]:
+    async def all_schedules(
+        self, schedule_id: int | None = None
+    ) -> list[FerrySchedule]:
+        subpath = 'schedroutes'
+        if schedule_id is not None:
+            subpath = f'{subpath}/{schedule_id}'
+        return [
+            FerrySchedule(**ferry_route)
+            for ferry_route in await self.get_json(subpath=subpath)
+        ]
+
+    async def all_routes(
+        self,
+        trip_date: str,
+        departing_terminal_id: int | None = None,
+        arriving_terminal_id: int | None = None,
+    ) -> list[FerryRoute]:
+        if (departing_terminal_id is None and arriving_terminal_id is not None) or (
+            departing_terminal_id is not None and arriving_terminal_id is None
+        ):
+            raise ValueError(
+                'all_routes must be called with either both departing_terminal_id and arriving_terminal_id or neither'
+            )
+        subpath = f'routes/{trip_date}'
+        if departing_terminal_id is not None:
+            subpath = f'{subpath}/{departing_terminal_id}/{arriving_terminal_id}'
         return [
             FerryRoute(**ferry_route)
-            for ferry_route in await self.get_json(subpath='schedroutes')
+            for ferry_route in await self.get_json(subpath=subpath)
         ]
 
     async def all_sailings(self, schedule_route_id: int) -> list[FerrySailing]:
+        # Note: there is also sailings/{schedule_route_id} which returns list[FerrySailing]. How is this different?
         return [
             FerrySailing(**ferry_sailing)
-            for ferry_sailing in await self.get_json(subpath='allsailings')
+            for ferry_sailing in await self.get_json(
+                subpath=f'allsailings/{schedule_route_id}'
+            )
         ]
