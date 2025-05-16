@@ -28,7 +28,13 @@ class Season(Enum):
     WINTER = 3
 
 
-class FerrySeason(BaseModel):
+class Load(Enum):
+    PASSENGER = 0
+    VEHICLE = 1
+    BOTH = 2
+
+
+class FerrySimpleSchedule(BaseModel):
     ScheduleID: int
     ScheduleName: str | None
     ScheduleSeason: Season
@@ -37,11 +43,55 @@ class FerrySeason(BaseModel):
     ScheduleEnd: RestDate
 
 
+class FerryTerminalPairTime(BaseModel):
+    DepartingTime: RestDate
+    ArrivingTime: RestDate | None
+    LoadingRule: Load
+    VesselID: int
+    VesselName: str | None
+    VesselHandicapAccessible: bool
+    VesselPositionNum: int
+    Routes: list[int] | None
+    AnnotationIndexes: list[int] | None
+
+
+class FerrySimpleTerminal(BaseModel):
+    TerminalID: int
+    Description: str | None
+
+
+class FerrySimpleTerminalPair(BaseModel):
+    DepartingTerminalID: int
+    DepartingTerminalName: str | None
+    ArrivingTerminalID: int
+    ArrivingTerminalName: str | None
+
+
+class FerryTerminalPair(FerrySimpleTerminalPair):
+    SailingNote: str | None
+    Annotations: list[str | None] | None
+    Times: list[FerryTerminalPairTime] | None
+    AnnotationsIVR: list[str | None] | None
+
+
+class FerrySchedule(FerrySimpleSchedule):
+    AllRoutes: list[int] | None
+    TerminalCompos: list[FerryTerminalPair]
+
+
 class FerrySimpleAlert(BaseModel):
     BulletinID: int
     BulletinFlag: bool
     PublishDate: RestDate
     DisruptionDescription: str | None
+
+
+class FerryAlertD(FerrySimpleAlert):
+    CommunicationFlag: bool
+    AlertDescription: str | None
+    AlertFullTitle: str | None
+    AlertFullText: str | None
+    IVRText: str | None
 
 
 class FerryAlert(FerrySimpleAlert):
@@ -69,20 +119,35 @@ class FerryRouteAdjustment(BaseModel):
     ReplacedBySchedRouteID: int | None
 
 
-class FerryRoute(BaseModel):
+class BasicRoute(BaseModel):
     RouteID: int
     RouteAbbrev: str | None
     Description: str | None
     RegionID: int
+
+
+class FerrySimpleRoute(BasicRoute):
     ServiceDisruptions: list[FerrySimpleAlert] | None
 
 
-class FerrySchedule(FerryRoute):
+class FerryRoute(FerrySimpleRoute):
     ScheduleID: int
     SchedRouteID: int
     ContingencyOnly: bool
     SeasonalRouteNotes: str | None
     ContingencyAdj: list[FerryRouteAdjustment] | None
+
+
+class FerryRouteD(BasicRoute):
+    VesselWatchID: int
+    ReservationFlag: bool
+    InternationalFlag: bool
+    PassengerOnlyFlag: bool
+    CrossingTime: str | None
+    AdaNotes: str | None
+    GeneralRouteNotes: str | None
+    SeasonalRouteNotes: str | None
+    Alerts: list[FerryAlertD] | None
 
 
 class FerryDateRange(BaseModel):
@@ -176,19 +241,7 @@ class WsdotFerrySchedule(Wsdot):
     def auth_header(self) -> dict[str, str]:
         return {'apiaccesscode': self.api_key}
 
-    # /activeseasons is abbreviated /schedule
-
-    async def season(self) -> list[FerrySeason]:
-        """
-        FerrySeason is a subset of the information returned by FerrySchedule. Consider calling
-        season() if you already know the terminal or route IDs for a more complete type
-        """
-        return [
-            FerrySeason(**ferry_season)
-            for ferry_season in await self.get_json(subpath='activeseasons')
-        ]
-
-    async def alerts(self) -> list[FerryAlert]:
+    async def all_alerts(self) -> list[FerryAlert]:
         return [
             FerryAlert(**ferry_alert)
             for ferry_alert in await self.get_json(subpath='alerts')
@@ -212,23 +265,51 @@ class WsdotFerrySchedule(Wsdot):
             for ferry_adjustment in await self.get_json(subpath=subpath)
         ]
 
-    async def all_schedules(
-        self, schedule_id: int | None = None
-    ) -> list[FerrySchedule]:
-        subpath = 'schedroutes'
-        if schedule_id is not None:
-            subpath = f'{subpath}/{schedule_id}'
+    async def all_schedules(self) -> list[FerrySimpleSchedule]:
+        """
+        FerrySimpleSchedule is a subset of the information returned by FerrySchedule. Consider calling
+        schedule() if you already know the route ID or terminal IDs for a more complete type
+        """
         return [
-            FerrySchedule(**ferry_route)
-            for ferry_route in await self.get_json(subpath=subpath)
+            FerrySimpleSchedule(**ferry_season)
+            for ferry_season in await self.get_json(subpath='activeseasons')
         ]
+
+    async def schedule(
+        self,
+        trip_date: str,
+        *,
+        route_id: int | None = None,
+        departing_terminal_id: int | None = None,
+        arriving_terminal_id: int | None = None,
+    ) -> FerrySchedule:
+        # Note: there is also /scheduletoday/{route_id_or_two_terminals}, probably not necessary?
+        # could make trip_date default to today
+        if route_id is not None:
+            if departing_terminal_id is not None or arriving_terminal_id is not None:
+                raise ValueError(
+                    'schedule must be called with either route_id or departing_terminal_id and arriving_terminal_id'
+                )
+            subpath = f'schedule/{trip_date}/{route_id}'
+        elif departing_terminal_id is None or arriving_terminal_id is None:
+            raise ValueError(
+                'schedule must be called with both departing_terminal_id and arriving_terminal_id'
+            )
+        else:
+            subpath = (
+                f'schedule/{trip_date}/{departing_terminal_id}/{arriving_terminal_id}'
+            )
+
+        return FerrySchedule(**(await self.get_json(subpath=subpath)))
 
     async def all_routes(
         self,
         trip_date: str,
         departing_terminal_id: int | None = None,
         arriving_terminal_id: int | None = None,
-    ) -> list[FerryRoute]:
+    ) -> list[FerrySimpleRoute]:
+        # Note: there is also /routeshavingservicedisruptions/{trip_date} which is just the simple
+        # form of /routes/{trip_date} joined with /timeadjbyroute/{route_id}
         if (departing_terminal_id is None and arriving_terminal_id is not None) or (
             departing_terminal_id is not None and arriving_terminal_id is None
         ):
@@ -239,15 +320,75 @@ class WsdotFerrySchedule(Wsdot):
         if departing_terminal_id is not None:
             subpath = f'{subpath}/{departing_terminal_id}/{arriving_terminal_id}'
         return [
+            FerrySimpleRoute(**ferry_route)
+            for ferry_route in await self.get_json(subpath=subpath)
+        ]
+
+    async def routes(self, schedule_id: int | None = None) -> list[FerryRoute]:
+        subpath = 'schedroutes'
+        if schedule_id is not None:
+            subpath = f'{subpath}/{schedule_id}'
+        return [
             FerryRoute(**ferry_route)
             for ferry_route in await self.get_json(subpath=subpath)
         ]
 
+    async def route_ds(
+        self,
+        trip_date=str,
+        *,
+        route_id: int | None = None,
+        departing_terminal_id: int | None = None,
+        arriving_terminal_id: int | None = None,
+    ) -> list[FerryRouteD]:
+        if route_id is not None:
+            if departing_terminal_id is not None or arriving_terminal_id is not None:
+                raise ValueError(
+                    'route_ds must be called with either route_id or departing_terminal_id and arriving_terminal_id'
+                )
+            subpath = f'routedetails/{trip_date}/{route_id}'
+        else:
+            if (departing_terminal_id is None and arriving_terminal_id is not None) or (
+                departing_terminal_id is not None and arriving_terminal_id is None
+            ):
+                raise ValueError(
+                    'route_ds must be called with both departing_terminal_id and arriving_terminal_id'
+                )
+            elif departing_terminal_id is not None:
+                subpath = f'routedetails/{trip_date}/{departing_terminal_id}/{arriving_terminal_id}'
+            else:
+                subpath = f'routedetails/{trip_date}'
+
+        return [
+            FerryRouteD(**ferry_route)
+            for ferry_route in await self.get_json(subpath=subpath)
+        ]
+
     async def all_sailings(self, schedule_route_id: int) -> list[FerrySailing]:
-        # Note: there is also sailings/{schedule_route_id} which returns list[FerrySailing]. How is this different?
+        # Note: there is also /sailings/{schedule_route_id} which returns list[FerrySailing]. How is this different?
         return [
             FerrySailing(**ferry_sailing)
             for ferry_sailing in await self.get_json(
                 subpath=f'allsailings/{schedule_route_id}'
             )
         ]
+
+    async def all_terminal_pairs(
+        self, trip_date: str, route_id: int | None = None
+    ) -> list[FerrySimpleTerminalPair]:
+        # Note: /terminals{trip_date} can return a list[FerrySimpleTerminal]
+        # Note: /terminalmates{trip_date}/{terminal_id} can return a list[FerrySimpleTerminal]
+        if route_id is None:
+            subpath = f'terminalsandmates/{trip_date}'
+        else:
+            subpath = f'terminalsandmatesbyroute/{trip_date}/{route_id}'
+
+        return [
+            FerrySimpleTerminalPair(**linked_terminals)
+            for linked_terminals in await self.get_json(subpath=subpath)
+        ]
+
+
+# /alternativeformats/{SubjectName}
+# /cacheflushdate
+# /validdaterange
