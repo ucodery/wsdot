@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wsdot"
-version = "0.0.0"
+version = "0.0.1"
 readme = "README.md"
 license = "BSD-3-Clause"
 authors = [{name = "Jeremiah Paige", email = "ucodery@gmail.com"}]
