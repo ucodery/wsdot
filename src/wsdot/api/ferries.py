@@ -1,9 +1,50 @@
+"""
+# Alerts
+An informational message targeted as on of a: communication, bulletin, or `Route` disruption
+
+# Adjustment
+Deviations from a pre-planned `Sailings`, both additions and cancellations
+
+# Route
+A planned trip along a predetermined path at a scheduled time
+
+# Sailing
+The travel of a `Vessel` along a `Route`
+
+## Journey
+The travel of a `Vessel` between two `Terminal`.
+
+A Sailing may be made up of multiple journeys when the `Vessel` stops at more than two `Terminal`s
+following a `Route`.
+
+# Schedule
+Planned travel times along a `Route` between a `TerminalPair`
+
+# TerminalPair
+Two `Terminal`s connected by a `Route`
+"""
 from enum import Enum
 
 from pydantic import BaseModel
 
 from ._json_date import RestDate
 from .base import Wsdot
+
+type AlertTypeID = int
+type AnnotationID = int
+type BulletinID = int
+type EventID = int
+type JourneyID = int
+type JourneyTerminalID = int
+type RegionID = int
+type ReplacedBySchedRouteID = int
+type RouteID = int
+type SailingID = int
+type ScheduleID = int
+type SchedRouteID = int
+type TerminalID = int
+type VesselID = int
+type VesselWatchID = int
 
 
 class Adjustement(Enum):
@@ -34,59 +75,66 @@ class Load(Enum):
     BOTH = 2
 
 
+# NOTE: https://www.wsdot.wa.gov/ferries/api/schedule/documentation/rest.html and
+# https://www.wsdot.wa.gov/ferries/api/schedule/rest/help seem to disagree about which fields are nullable
+
 class FerrySimpleSchedule(BaseModel):
-    ScheduleID: int
-    ScheduleName: str | None
+    """
+    Identifies a planned schedule and for when it is valid
+    """
+    ScheduleID: ScheduleID
+    ScheduleName: str
     ScheduleSeason: Season
-    SchedulePDFUrl: str | None
+    SchedulePDFUrl: str
     ScheduleStart: RestDate
     ScheduleEnd: RestDate
 
+class FerryVessel(BaseModel):
+    VesselID: VesselID
+    VesselName: str
+    VesselHandicapAccessible: bool
+    VesselPositionNum: int
 
-class FerryTerminalPairTime(BaseModel):
+class FerryTerminalPairTime(FerryVessel):
     DepartingTime: RestDate
     ArrivingTime: RestDate | None
     LoadingRule: Load
-    VesselID: int
-    VesselName: str | None
-    VesselHandicapAccessible: bool
-    VesselPositionNum: int
-    Routes: list[int] | None
-    AnnotationIndexes: list[int] | None
+    Routes: list[RouteID]
+    AnnotationIndexes: list[AnnotationID]
 
 
 class FerrySimpleTerminal(BaseModel):
-    TerminalID: int
+    TerminalID: TerminalID
     Description: str | None
 
 
 class FerrySimpleTerminalPair(BaseModel):
-    DepartingTerminalID: int
-    DepartingTerminalName: str | None
-    ArrivingTerminalID: int
-    ArrivingTerminalName: str | None
+    DepartingTerminalID: TerminalID
+    DepartingTerminalName: str
+    ArrivingTerminalID: TerminalID
+    ArrivingTerminalName: str
 
 
 class FerryTerminalPair(FerrySimpleTerminalPair):
-    SailingNote: str | None
-    Annotations: list[str | None] | None
-    Times: list[FerryTerminalPairTime] | None
-    AnnotationsIVR: list[str | None] | None
+    SailingNote: str
+    Annotations: list[str]
+    Times: list[FerryTerminalPairTime]
+    AnnotationsIVR: list[str]
 
 
 class FerrySchedule(FerrySimpleSchedule):
-    AllRoutes: list[int] | None
+    AllRoutes: list[RouteID]
     TerminalCompos: list[FerryTerminalPair]
 
 
 class FerrySimpleAlert(BaseModel):
-    BulletinID: int
+    BulletinID: BulletinID
     BulletinFlag: bool
-    PublishDate: RestDate
-    DisruptionDescription: str | None
+    PublishDate: RestDate | None
+    DisruptionDescription: str
 
 
-class FerryAlertD(FerrySimpleAlert):
+class FerryRouteAlert(FerrySimpleAlert):
     CommunicationFlag: bool
     AlertDescription: str | None
     AlertFullTitle: str | None
@@ -95,6 +143,9 @@ class FerryAlertD(FerrySimpleAlert):
 
 
 class FerryAlert(FerrySimpleAlert):
+    """
+    A communication about Washington State Ferries Services
+    """
     BulletinText: str | None
     CommunicationFlag: bool
     CommunicationText: str | None
@@ -103,43 +154,49 @@ class FerryAlert(FerrySimpleAlert):
     HomepageAlertText: str | None
     AllRoutesFlag: bool
     SortSeq: int
-    AlertTypeID: int
-    AlertType: str | None
-    AlertFullTitle: str | None
-    AffectedRouteIDs: list[int] | None
+    AlertTypeID: AlertTypeID
+    AlertType: str
+    AlertFullTitle: str
+    AffectedRouteIDs: list[RouteID] | None
     IVRText: str | None
 
 
 class FerryRouteAdjustment(BaseModel):
     DateFrom: RestDate
     DateThru: RestDate
-    EventID: int | None
+    EventID: EventID | None
     EventDescription: str | None
     AdjType: Adjustement
-    ReplacedBySchedRouteID: int | None
+    ReplacedBySchedRouteID: ReplacedBySchedRouteID | None
 
 
 class BasicRoute(BaseModel):
-    RouteID: int
-    RouteAbbrev: str | None
-    Description: str | None
-    RegionID: int
+    RouteID: RouteID
+    RouteAbbrev: str
+    Description: str
+    RegionID: RegionID
 
 
 class FerrySimpleRoute(BasicRoute):
+    """
+    Identifies a planned route and any interruptions
+    """
     ServiceDisruptions: list[FerrySimpleAlert] | None
 
 
-class FerryRoute(FerrySimpleRoute):
-    ScheduleID: int
-    SchedRouteID: int
+class FerryActiveRoute(FerrySimpleRoute):
+    """
+    Identifies a planned route that is scheduled to run as well as any interruptions or alterations
+    """
+    ScheduleID: ScheduleID
+    SchedRouteID: SchedRouteID
     ContingencyOnly: bool
     SeasonalRouteNotes: str | None
     ContingencyAdj: list[FerryRouteAdjustment] | None
 
 
-class FerryRouteD(BasicRoute):
-    VesselWatchID: int
+class FerryRoute(BasicRoute):
+    VesselWatchID: VesselWatchID
     ReservationFlag: bool
     InternationalFlag: bool
     PassengerOnlyFlag: bool
@@ -147,50 +204,52 @@ class FerryRouteD(BasicRoute):
     AdaNotes: str | None
     GeneralRouteNotes: str | None
     SeasonalRouteNotes: str | None
-    Alerts: list[FerryAlertD] | None
+    Alerts: list[FerryRouteAlert] | None
 
 
 class FerryDateRange(BaseModel):
     DateFrom: RestDate
     DateThru: RestDate
-    EventID: int | None
+    EventID: EventID | None
     EventDescription: str | None
 
 
 class FerryAnnotation(BaseModel):
-    AnnotationID: int
-    AnnotationText: str | None
-    AnnotationIVRText: str | None
+    AnnotationID: AnnotationID
+    AnnotationText: str
+    AnnotationIVRText: str
     AdjustedCrossingTime: int | None
-    AnnotationImg: str | None
-    TypeDescription: str | None
+    AnnotationImg: str
+    TypeDescription: str
     SortSeq: int
 
 
-class FerryScheduleAdjustment(BaseModel):
-    ScheduleID: int
-    SchedRouteID: int
-    RouteID: int
-    RouteDescription: str | None
-    RouteSortSeq: int
-    SailingID: int
-    SailingDescription: str | None
-    ActiveSailingDateRange: FerryDateRange | None
+class FerrySimpleSailing(BaseModel):
+    ScheduleID: ScheduleID
+    SchedRouteID: SchedRouteID
+    RouteID: RouteID
+    SailingID: SailingID
+    SailingDescription: str
     SailingDir: Cardinal
-    JourneyID: int
-    VesselID: int
-    VesselName: str | None
-    VesselHandicapAccessible: bool
-    VesselPositionNum: int
-    JourneyTerminalID: int
-    TerminalID: int
-    TerminalDescription: str | None
-    TerminalBriefDescription: str | None
+
+
+class FerryScheduleAdjustment(FerrySimpleSailing, FerryVessel):
+    """
+    Represents either an addition or a cancellation to an active route
+    """
+    RouteDescription: str
+    RouteSortSeq: int
+    ActiveSailingDateRange: FerryDateRange | None
+    JourneyID: JourneyID
+    JourneyTerminalID: JourneyTerminalID
+    TerminalID: TerminalID
+    TerminalDescription: str
+    TerminalBriefDescription: str
     TimeToAdj: RestDate
     AdjDateFrom: RestDate
     AdjDateThru: RestDate
     TidalAdj: bool
-    EventID: int | None
+    EventID: EventID | None
     EventDescription: str | None
     DepArrIndicator: Journey
     AdjType: Adjustement
@@ -198,8 +257,8 @@ class FerryScheduleAdjustment(BaseModel):
 
 
 class FerryScheduleTimes(BaseModel):
-    JourneyTerminalID: int
-    TerminalID: int
+    JourneyTerminalID: JourneyTerminalID
+    TerminalID: TerminalID
     TerminalDescription: str | None
     TerminalBriefDescription: str | None
     Time: RestDate
@@ -208,27 +267,17 @@ class FerryScheduleTimes(BaseModel):
     Annotations: list[FerryAnnotation] | None
 
 
-class FerryJourney(BaseModel):
-    JourneyID: int
+class FerryJourney(FerryVessel):
+    JourneyID: JourneyID
     ReservationInd: bool
     InternationalInd: bool
     InterislandInd: bool
-    VesselID: int
-    VesselName: str | None
-    VesselHandicapAccessible: bool
-    VesselPositionNum: int
     TerminalTimes: list[FerryScheduleTimes] | None
 
 
-class FerrySailing(BaseModel):
-    ScheduleID: int
-    SchedRouteID: int
-    RouteID: int
-    SailingID: int
-    SailingDescription: str | None
+class FerrySailing(FerrySimpleSailing):
     SailingNotes: str | None
     DisplayColNum: int
-    SailingDir: Cardinal
     DayOpDescription: str | None
     DayOpUseForHoliday: bool
     ActiveDateRanges: list[FerryDateRange] | None
@@ -242,14 +291,20 @@ class WsdotFerrySchedule(Wsdot):
         return {'apiaccesscode': self.api_key}
 
     async def all_alerts(self) -> list[FerryAlert]:
+        """Return all current alerts."""
         return [
             FerryAlert(**ferry_alert)
             for ferry_alert in await self.get_json(subpath='alerts')
         ]
 
     async def all_adjustments(
-        self, *, route_id: int | None = None, schedule_id: int | None = None
+        self, *, route_id: RouteID | None = None, schedule_id: ScheduleID | None = None
     ) -> list[FerryScheduleAdjustment]:
+        """Return all additions and cancellations for either a specific Route or Schedule
+
+        Exactly one of either `route_id` or `schedule_id` must be provided. These IDs can
+        be discovered by calling either `all_routes()` or `all_schedules()`.
+        """
         if route_id is not None and schedule_id is not None:
             raise ValueError(
                 'all_adjustments must be called with one of route_id or schedule_id or neither'
@@ -267,8 +322,10 @@ class WsdotFerrySchedule(Wsdot):
 
     async def all_schedules(self) -> list[FerrySimpleSchedule]:
         """
+        Return all active schedules
+
         FerrySimpleSchedule is a subset of the information returned by FerrySchedule. Consider calling
-        schedule() if you already know the route ID or terminal IDs for a more complete type
+        schedule() if you already know the RouteID or TerminalIDs for a more complete type
         """
         return [
             FerrySimpleSchedule(**ferry_season)
@@ -279,10 +336,17 @@ class WsdotFerrySchedule(Wsdot):
         self,
         trip_date: str,
         *,
-        route_id: int | None = None,
-        departing_terminal_id: int | None = None,
-        arriving_terminal_id: int | None = None,
+        route_id: RouteID | None = None,
+        departing_terminal_id: TerminalID | None = None,
+        arriving_terminal_id: TerminalID | None = None,
     ) -> FerrySchedule:
+        """
+        Return the schedule for either a specific Route or a pair of Terminals.
+
+        Exactly one of either `route_id` or `departing_terminal_id` and `arriving_terminal_id` must
+        be provided. These IDs can be discovered by calling either `all_routes()` or
+        `all_terminal_pairs()`.
+        """
         # Note: there is also /scheduletoday/{route_id_or_two_terminals}, probably not necessary?
         # could make trip_date default to today
         if route_id is not None:
@@ -305,9 +369,16 @@ class WsdotFerrySchedule(Wsdot):
     async def all_routes(
         self,
         trip_date: str,
-        departing_terminal_id: int | None = None,
-        arriving_terminal_id: int | None = None,
+        departing_terminal_id: TerminalID | None = None,
+        arriving_terminal_id: TerminalID | None = None,
     ) -> list[FerrySimpleRoute]:
+        """
+        Return all routes
+
+        FerrySimpleRoute is a subset of the information returned by FerryActiveRoute and FerryRoute.
+        Consider calling active_routes() if you already know the ScheduleID, or routes() if you
+        already know the RouteID or TerminalIDs for a more complete type.
+        """
         # Note: there is also /routeshavingservicedisruptions/{trip_date} which is just the simple
         # form of /routes/{trip_date} joined with /timeadjbyroute/{route_id}
         if (departing_terminal_id is None and arriving_terminal_id is not None) or (
@@ -324,23 +395,33 @@ class WsdotFerrySchedule(Wsdot):
             for ferry_route in await self.get_json(subpath=subpath)
         ]
 
-    async def routes(self, schedule_id: int | None = None) -> list[FerryRoute]:
+    async def active_routes(self, schedule_id: ScheduleID | None = None) -> list[FerryActiveRoute]:
+        """
+        Return all routes for a schedule or season
+        """
         subpath = 'schedroutes'
         if schedule_id is not None:
             subpath = f'{subpath}/{schedule_id}'
         return [
-            FerryRoute(**ferry_route)
+            FerryActiveRoute(**ferry_route)
             for ferry_route in await self.get_json(subpath=subpath)
         ]
 
-    async def route_ds(
+
+    async def route(self, trip_date, route_id) => FerryRoute:
+
+
+    async def routes(
         self,
         trip_date=str,
         *,
-        route_id: int | None = None,
-        departing_terminal_id: int | None = None,
-        arriving_terminal_id: int | None = None,
-    ) -> list[FerryRouteD]:
+        route_id: RouteID | None = None,
+        departing_terminal_id: TerminalID | None = None,
+        arriving_terminal_id: TerminalID | None = None,
+    ) -> list[FerryRoute]:
+        """
+        Return all routes active for a particular date
+        """
         if route_id is not None:
             if departing_terminal_id is not None or arriving_terminal_id is not None:
                 raise ValueError(
@@ -360,11 +441,11 @@ class WsdotFerrySchedule(Wsdot):
                 subpath = f'routedetails/{trip_date}'
 
         return [
-            FerryRouteD(**ferry_route)
+            FerryRoute(**ferry_route)
             for ferry_route in await self.get_json(subpath=subpath)
         ]
 
-    async def all_sailings(self, schedule_route_id: int) -> list[FerrySailing]:
+    async def all_sailings(self, schedule_route_id: SchedRouteID) -> list[FerrySailing]:
         # Note: there is also /sailings/{schedule_route_id} which returns list[FerrySailing]. How is this different?
         return [
             FerrySailing(**ferry_sailing)
@@ -374,7 +455,7 @@ class WsdotFerrySchedule(Wsdot):
         ]
 
     async def all_terminal_pairs(
-        self, trip_date: str, route_id: int | None = None
+        self, trip_date: str, route_id: RouteID | None = None
     ) -> list[FerrySimpleTerminalPair]:
         # Note: /terminals{trip_date} can return a list[FerrySimpleTerminal]
         # Note: /terminalmates{trip_date}/{terminal_id} can return a list[FerrySimpleTerminal]
