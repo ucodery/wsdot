@@ -1,0 +1,14 @@
+[{
+	"ScheduleID":2147483647,
+	"SchedRouteID":2147483647,
+	"RouteID":2147483647,
+	"SailingID":2147483647,
+	"SailingDescription":null,
+	"SailingNotes":null,
+	"DisplayColNum":2147483647,
+	"SailingDir":0,
+	"DayOpDescription":null,
+	"DayOpUseForHoliday":true,
+	"ActiveDateRanges":null,
+	"Journs":null
+}]

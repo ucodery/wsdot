@@ -1,0 +1,12 @@
+[{
+	"ScheduleID":2147483647,
+	"SchedRouteID":2147483647,
+	"ContingencyOnly":true,
+	"RouteID":2147483647,
+	"RouteAbbrev":null,
+	"Description":null,
+	"SeasonalRouteNotes":null,
+	"RegionID":2147483647,
+	"ServiceDisruptions":null,
+	"ContingencyAdj":null
+}]

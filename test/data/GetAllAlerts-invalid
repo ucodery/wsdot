@@ -1,0 +1,19 @@
+[{
+	"BulletinID":"ALERT",
+	"BulletinFlag":42,
+	"BulletinText":"String content",
+	"CommunicationFlag":true,
+	"CommunicationText":"String content",
+	"RouteAlertFlag":true,
+	"RouteAlertText":"String content",
+	"HomepageAlertText":"String content",
+	"PublishDate":"\/Date(1928274800000-0700)\/",
+	"DisruptionDescription":"String content",
+	"AllRoutesFlag":true,
+	"SortSeq":2147483647,
+	"AlertTypeID":2147483647,
+	"AlertType":"String content",
+	"AlertFullTitle":"String content",
+	"AffectedRouteIDs":[2147483647],
+	"IVRText":"String content"
+}]

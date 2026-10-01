@@ -1,0 +1,11 @@
+[{
+	"RouteID":null,
+	"RouteAbbrev":"String content",
+	"Description":"String content",
+	"ServiceDisruptions":[{
+		"BulletinID":2147483647,
+		"BulletinFlag":true,
+		"PublishDate":"\/Date(928174800000-0700)\/",
+		"DisruptionDescription":"String content"
+	}]
+}]

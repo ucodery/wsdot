@@ -1,7 +1,8 @@
 from pydantic import ValidationError
 import pytest
 
-from wsdot import TravelTime, WsdotTravelError, WsdotTravelTimes
+from wsdot.api.traffic import TravelTime, WsdotTravelTimes
+from wsdot.error import WsdotError
 
 
 @pytest.mark.parametrize(
@@ -38,7 +39,7 @@ async def test_invalid_travel_times(local_session):
 async def test_empty_travel_times(local_session):
     dot = WsdotTravelTimes(api_key='dead_beef', session=local_session)
 
-    with pytest.raises(WsdotTravelError):
+    with pytest.raises(WsdotError):
         await dot.get_all_travel_times()
 
 

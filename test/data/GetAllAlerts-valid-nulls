@@ -1,0 +1,19 @@
+[{
+	"BulletinID":2147483647,
+	"BulletinFlag":true,
+	"BulletinText":null,
+	"CommunicationFlag":true,
+	"CommunicationText":null,
+	"RouteAlertFlag":true,
+	"RouteAlertText":null,
+	"HomepageAlertText":null,
+	"PublishDate":"\/Date(1928174800000-0700)\/",
+	"DisruptionDescription":null,
+	"AllRoutesFlag":true,
+	"SortSeq":2147483647,
+	"AlertTypeID":2147483647,
+	"AlertType":null,
+	"AlertFullTitle":null,
+	"AffectedRouteIDs":null,
+	"IVRText":null
+}]
