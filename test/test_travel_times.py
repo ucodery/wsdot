@@ -49,3 +49,22 @@ async def test_travel_time(local_session):
     time = await dot.get_travel_time(1)
 
     assert isinstance(time, TravelTime)
+
+
+@pytest.mark.parametrize('local_data', ['GetTravelTimesAsJson-valid'])
+@pytest.mark.asyncio
+async def test_access_code_sent_over_https(local_session):
+    requests = []
+    local_get = local_session.get
+
+    def recording_get(url, params=None):
+        requests.append((url, params))
+        return local_get(url, params)
+
+    local_session.get = recording_get
+    dot = WsdotTravelTimes(api_key='dead_beef', session=local_session)
+    await dot.get_all_travel_times()
+
+    url, params = requests[0]
+    assert params['AccessCode'] == 'dead_beef'
+    assert url.startswith('https://')

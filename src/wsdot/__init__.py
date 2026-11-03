@@ -53,7 +53,7 @@ class WsdotTravel:
         self, api_key: str, *, session: aiohttp.ClientSession | None = None
     ) -> None:
         self.api_key = api_key
-        self.url = 'http://www.wsdot.wa.gov/traffic/api/'
+        self.url = 'https://wsdot.wa.gov/traffic/api/'
         self.data_path = ''
         self.session = session if session is not None else get_long_lived_session()
 
